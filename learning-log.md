@@ -50,3 +50,10 @@
 ## Session 9 — CSV Export Function
 - Created export_csv() to organise CSV export.
 - Successfully exported all four saved records.
+
+## Session 10 — Streamlit Web App
+- Created a browser interface in web_app.py.
+- Connected the form to JSON storage.
+- Displayed saved records and total sales.
+- Added a Delete button beside each record.
+- Added confirmation and cancellation for deletion.

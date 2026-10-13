@@ -16,6 +16,9 @@ A beginner Python project to calculate canteen sales and leftover food.
 - Store price and prepared quantity for new records
 - View sales and leftover totals for a selected date
 - Export all saved records to CSV for Excel
+- Browser interface built with Streamlit
+- Save food entries from a form
+- Delete individual records with confirmation
 
 ## How to Run
 Requires Python 3.
@@ -32,7 +35,7 @@ Leftover: 4
 Total sales: Rs. 30.00
 
 ## Current Limitations
-- Runs in the terminal
+- - Runs locally; online deployment is pending
 - Records are stored locally; no automatic cloud backup
 - Total sales includes all saved records
 
@@ -44,4 +47,19 @@ Total sales: Rs. 30.00
 
 ## Author
 Sanket
+
+## Run the Web App on Windows
+
+Install dependencies:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+```
+
+Start the app:
+
+```powershell
+.\.venv\Scripts\python.exe -m streamlit run web_app.py
+```
 

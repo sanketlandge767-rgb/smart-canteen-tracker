@@ -26,3 +26,9 @@
 - Kept older records readable.
 - Tested Poha sales: Rs. 200.
 - Verified total saved sales: Rs. 470.
+
+## Session 5 — Daily Report
+- Added reports filtered by date.
+- Calculated daily sales and leftover quantity.
+- Excluded undated records from daily reports.
+- Tested 2026-10-13: Rs. 200 sales and 2 leftover.

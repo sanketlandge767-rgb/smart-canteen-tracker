@@ -82,3 +82,38 @@ for record in records:
     grand_total += record["sales"]
 
 print(f"\nTotal sales: Rs. {grand_total:.2f}")
+
+report_date = input(
+    "\nEnter report date (YYYY-MM-DD), or Enter to skip: "
+).strip()
+
+if report_date:
+    try:
+        date.fromisoformat(report_date)
+
+        daily_sales = 0
+        daily_leftover = 0
+        matching_records = 0
+
+        print(f"\n--- Report for {report_date} ---")
+
+        for record in records:
+            if record.get("date") == report_date:
+                print(
+                    f"{record['food']} | "
+                    f"Sales: Rs. {record['sales']:.2f} | "
+                    f"Leftover: {record['leftover']}"
+                )
+
+                daily_sales += record["sales"]
+                daily_leftover += record["leftover"]
+                matching_records += 1
+
+        if matching_records == 0:
+            print("No records found for this date.")
+        else:
+            print(f"Daily sales: Rs. {daily_sales:.2f}")
+            print("Total leftover quantity:", daily_leftover)
+
+    except ValueError:
+        print("Invalid date. Use YYYY-MM-DD, for example 2026-10-13.")

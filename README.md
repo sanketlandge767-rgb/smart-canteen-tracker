@@ -8,6 +8,8 @@ A beginner Python project to calculate canteen sales and leftover food.
 - Calculate total sales and leftover food
 - Validate negative values and incorrect quantities
 - Handle invalid numeric input
+- Add multiple food items in one session
+- Display item-wise summary and grand total sales
 
 ## How to Run
 Requires Python 3.
@@ -35,3 +37,4 @@ Total sales: Rs. 30.00
 
 ## Author
 Sanket
+

@@ -1,4 +1,6 @@
 import json
+import csv
+import io
 from pathlib import Path
 from datetime import date
 
@@ -28,6 +30,34 @@ def load_records():
 def save_records(records):
     with data_file.open("w", encoding="utf-8") as file:
         json.dump(records, file, indent=4)
+
+
+def create_csv(records):
+    csv_buffer = io.StringIO()
+
+    columns = [
+        "date", "food", "price", "prepared",
+        "sold", "leftover", "sales"
+    ]
+
+    writer = csv.DictWriter(csv_buffer, fieldnames=columns)
+    writer.writeheader()
+
+    for record in records:
+        writer.writerow({
+            "date": record.get("date", ""),
+            "food": record["food"],
+            "price": record.get("price", ""),
+            "prepared": record.get(
+                "prepared",
+                record["sold"] + record["leftover"]
+            ),
+            "sold": record["sold"],
+            "leftover": record["leftover"],
+            "sales": f"{record['sales']:.2f}"
+        })
+
+    return csv_buffer.getvalue().encode("utf-8-sig")
 
 
 st.title("🍽️ Smart Canteen Tracker")
@@ -242,3 +272,22 @@ else:
 st.caption(
     "Old records without a date are excluded from daily reports."
 )
+
+# CSV download
+st.divider()
+st.subheader("📥 Export Records")
+
+if records:
+    st.download_button(
+        label="Download all records as CSV",
+        data=create_csv(records),
+        file_name=f"canteen-records-{date.today().isoformat()}.csv",
+        mime="text/csv",
+        key="download_all_records"
+    )
+
+    st.caption(
+        "Downloads all saved records, regardless of the selected report date."
+    )
+else:
+    st.info("Add records before exporting.")

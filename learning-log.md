@@ -63,3 +63,8 @@
 - Displayed daily sales, sold and leftover totals.
 - Removed a duplicate record.
 - Verified Rs. 380 sales, 16 sold and 9 leftover.
+
+## Session 12 — Web CSV Download
+- Added a Download CSV button to the browser app.
+- Exported all saved records.
+- Downloaded and checked the CSV file.

@@ -57,3 +57,9 @@
 - Displayed saved records and total sales.
 - Added a Delete button beside each record.
 - Added confirmation and cancellation for deletion.
+
+## Session 11 — Web Daily Report
+- Added a date selector and daily report.
+- Displayed daily sales, sold and leftover totals.
+- Removed a duplicate record.
+- Verified Rs. 380 sales, 16 sold and 9 leftover.

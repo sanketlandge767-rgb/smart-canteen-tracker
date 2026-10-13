@@ -38,6 +38,7 @@ records = load_records()
 if "pending_delete" not in st.session_state:
     st.session_state.pending_delete = None
 
+# Food entry form
 with st.form("food_entry", clear_on_submit=False):
     food_name = st.text_input("Food name")
 
@@ -92,6 +93,7 @@ if submitted:
             records = updated_records
             st.success("Record saved successfully!")
 
+# Saved records with Delete buttons
 st.subheader("All saved records")
 
 if records:
@@ -128,6 +130,7 @@ if records:
                 record["sold"] + record["leftover"]
             )
         )
+
         columns[4].write(record["sold"])
         columns[5].write(record["leftover"])
         columns[6].write(f"Rs. {record['sales']:.2f}")
@@ -164,10 +167,7 @@ if records:
                         st.rerun()
 
             with cancel_column:
-                if st.button(
-                    "Cancel",
-                    key=f"cancel_{index}"
-                ):
+                if st.button("Cancel", key=f"cancel_{index}"):
                     st.session_state.pending_delete = None
                     st.rerun()
 
@@ -180,3 +180,65 @@ else:
     st.info("No records yet. Add your first food item.")
 
 st.caption("Records are saved locally on this laptop.")
+
+# Daily report
+st.divider()
+st.subheader("📅 Daily Sales Report")
+
+selected_date = st.date_input(
+    "Select report date",
+    value=date.today()
+)
+
+selected_date_text = selected_date.isoformat()
+
+daily_records = [
+    record
+    for record in records
+    if record.get("date") == selected_date_text
+]
+
+if daily_records:
+    daily_sales = sum(
+        record["sales"] for record in daily_records
+    )
+
+    daily_sold = sum(
+        record["sold"] for record in daily_records
+    )
+
+    daily_leftover = sum(
+        record["leftover"] for record in daily_records
+    )
+
+    sales_column, sold_column, leftover_column = st.columns(3)
+
+    sales_column.metric(
+        "Daily sales",
+        f"Rs. {daily_sales:.2f}"
+    )
+    sold_column.metric("Items sold", daily_sold)
+    leftover_column.metric("Leftover quantity", daily_leftover)
+
+    daily_rows = []
+
+    for record in daily_records:
+        daily_rows.append({
+            "Food": record["food"],
+            "Prepared": record.get(
+                "prepared",
+                record["sold"] + record["leftover"]
+            ),
+            "Sold": record["sold"],
+            "Leftover": record["leftover"],
+            "Sales": record["sales"]
+        })
+
+    st.dataframe(daily_rows)
+
+else:
+    st.info("No records found for the selected date.")
+
+st.caption(
+    "Old records without a date are excluded from daily reports."
+)

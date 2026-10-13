@@ -4,21 +4,34 @@ from pathlib import Path
 from datetime import date
 
 data_file = Path(__file__).parent / "records.json"
+
+
+def save_records(records):
+    with data_file.open("w", encoding="utf-8") as file:
+        json.dump(records, file, indent=4)
+
+
+def load_records():
+    if data_file.exists():
+        try:
+            with data_file.open("r", encoding="utf-8") as file:
+                return json.load(file)
+        except json.JSONDecodeError:
+            print("Error: records.json contains invalid JSON.")
+            raise SystemExit
+
+    return []
+
+
 print("Smart Canteen Tracker")
 print("Created by: Sanket")
 
-if data_file.exists():
-    try:
-        with data_file.open("r", encoding="utf-8") as file:
-            records = json.load(file)
-    except json.JSONDecodeError:
-        print("Error: records.json contains invalid JSON.")
-        raise SystemExit
-else:
-    records = []
+records = load_records()
 
 while True:
-    food_name = input("\nEnter food name (or q to finish): ").strip()
+    food_name = input(
+        "\nEnter food name (or q to finish): "
+    ).strip()
 
     if food_name.lower() == "q":
         break
@@ -41,7 +54,6 @@ while True:
             continue
 
         record = {
-
             "date": date.today().isoformat(),
             "food": food_name,
             "price": price,
@@ -52,14 +64,14 @@ while True:
         }
 
         records.append(record)
-
-        with data_file.open("w", encoding="utf-8") as file:
-            json.dump(records, file, indent=4)
-
+        save_records(records)
         print("Item added successfully!")
 
     except ValueError:
-        print("Error: Enter numbers for price and whole numbers for quantities.")
+        print(
+            "Error: Enter numbers for price "
+            "and whole numbers for quantities."
+        )
 
 print("\n--- Final Canteen Summary ---")
 
@@ -117,7 +129,10 @@ if report_date:
             print("Total leftover quantity:", daily_leftover)
 
     except ValueError:
-        print("Invalid date. Use YYYY-MM-DD, for example 2026-10-13.")
+        print(
+            "Invalid date. Use YYYY-MM-DD, "
+            "for example 2026-10-13."
+        )
 
 export_choice = input(
     "\nExport all records to CSV? (y/n): "

@@ -36,3 +36,8 @@
 ## Session 6 — CSV Export
 - Exported saved records to CSV.
 - Opened the CSV in Excel and checked all three records.
+
+## Session 7 — Functions
+- Created save_records() and load_records() functions.
+- Confirmed saved records load correctly.
+- Verified four records with total sales Rs. 500.

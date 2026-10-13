@@ -1,4 +1,5 @@
 import json
+import csv
 from pathlib import Path
 from datetime import date
 
@@ -117,3 +118,38 @@ if report_date:
 
     except ValueError:
         print("Invalid date. Use YYYY-MM-DD, for example 2026-10-13.")
+
+export_choice = input(
+    "\nExport all records to CSV? (y/n): "
+).strip().lower()
+
+if export_choice == "y":
+    csv_file = Path(__file__).parent / "canteen-records.csv"
+
+    columns = [
+        "date", "food", "price", "prepared",
+        "sold", "leftover", "sales"
+    ]
+
+    with csv_file.open(
+        "w", newline="", encoding="utf-8-sig"
+    ) as file:
+        writer = csv.DictWriter(file, fieldnames=columns)
+        writer.writeheader()
+
+        for record in records:
+            writer.writerow({
+                "date": record.get("date", ""),
+                "food": record["food"],
+                "price": record.get("price", ""),
+                "prepared": record.get(
+                    "prepared",
+                    record["sold"] + record["leftover"]
+                ),
+                "sold": record["sold"],
+                "leftover": record["leftover"],
+                "sales": f"{record['sales']:.2f}"
+            })
+
+    print("CSV exported successfully!")
+    print("Saved at:", csv_file)

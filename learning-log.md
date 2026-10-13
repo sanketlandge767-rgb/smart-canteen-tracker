@@ -32,3 +32,7 @@
 - Calculated daily sales and leftover quantity.
 - Excluded undated records from daily reports.
 - Tested 2026-10-13: Rs. 200 sales and 2 leftover.
+
+## Session 6 — CSV Export
+- Exported saved records to CSV.
+- Opened the CSV in Excel and checked all three records.

@@ -12,6 +12,8 @@ A beginner Python project to calculate canteen sales and leftover food.
 - Display item-wise summary and grand total sales
 - Save records locally in a JSON file
 - Load saved records when restarting
+- Automatically date new entries
+- Store price and prepared quantity for new records
 
 ## How to Run
 Requires Python 3.

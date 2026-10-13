@@ -19,3 +19,10 @@
 - Loaded existing records when restarting the program.
 - Confirmed both records remained after restart.
 - Verified total saved sales: Rs. 270.
+
+## Session 4 — Date and Record Details
+- Added automatic date to new records.
+- Saved price and prepared quantity.
+- Kept older records readable.
+- Tested Poha sales: Rs. 200.
+- Verified total saved sales: Rs. 470.

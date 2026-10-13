@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from datetime import date
 
 data_file = Path(__file__).parent / "records.json"
 print("Smart Canteen Tracker")
@@ -39,7 +40,11 @@ while True:
             continue
 
         record = {
+
+            "date": date.today().isoformat(),
             "food": food_name,
+            "price": price,
+            "prepared": prepared,
             "sold": sold,
             "leftover": prepared - sold,
             "sales": price * sold
@@ -60,12 +65,20 @@ print("\n--- Final Canteen Summary ---")
 grand_total = 0
 
 for record in records:
+    record_date = record.get("date", "Old record")
+    prepared_quantity = record.get(
+        "prepared", record["sold"] + record["leftover"]
+    )
+
     print(
+        f"{record_date} | "
         f"{record['food']} | "
+        f"Prepared: {prepared_quantity} | "
         f"Sold: {record['sold']} | "
         f"Leftover: {record['leftover']} | "
         f"Sales: Rs. {record['sales']:.2f}"
     )
+
     grand_total += record["sales"]
 
 print(f"\nTotal sales: Rs. {grand_total:.2f}")

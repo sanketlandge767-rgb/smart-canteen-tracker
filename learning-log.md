@@ -46,3 +46,7 @@
 - Created show_summary() and show_daily_report().
 - Verified overall sales: Rs. 500.
 - Verified daily sales: Rs. 230 and leftover: 4.
+
+## Session 9 — CSV Export Function
+- Created export_csv() to organise CSV export.
+- Successfully exported all four saved records.

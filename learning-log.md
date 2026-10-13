@@ -41,3 +41,8 @@
 - Created save_records() and load_records() functions.
 - Confirmed saved records load correctly.
 - Verified four records with total sales Rs. 500.
+
+## Session 8 — Report Functions
+- Created show_summary() and show_daily_report().
+- Verified overall sales: Rs. 500.
+- Verified daily sales: Rs. 230 and leftover: 4.

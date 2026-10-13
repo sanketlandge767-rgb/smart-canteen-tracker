@@ -13,3 +13,9 @@
 - Displayed each item's sales and leftover quantity.
 - Tested two items: total sales Rs. 290.
 - Records are still temporary.
+
+## Session 3 — JSON Storage
+- Saved food records in records.json.
+- Loaded existing records when restarting the program.
+- Confirmed both records remained after restart.
+- Verified total saved sales: Rs. 270.

@@ -1,7 +1,19 @@
+import json
+from pathlib import Path
+
+data_file = Path(__file__).parent / "records.json"
 print("Smart Canteen Tracker")
 print("Created by: Sanket")
 
-records = []
+if data_file.exists():
+    try:
+        with data_file.open("r", encoding="utf-8") as file:
+            records = json.load(file)
+    except json.JSONDecodeError:
+        print("Error: records.json contains invalid JSON.")
+        raise SystemExit
+else:
+    records = []
 
 while True:
     food_name = input("\nEnter food name (or q to finish): ").strip()
@@ -34,6 +46,10 @@ while True:
         }
 
         records.append(record)
+
+        with data_file.open("w", encoding="utf-8") as file:
+            json.dump(records, file, indent=4)
+
         print("Item added successfully!")
 
     except ValueError:

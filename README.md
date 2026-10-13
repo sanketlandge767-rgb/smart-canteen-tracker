@@ -22,6 +22,7 @@ A beginner Python project to calculate canteen sales and leftover food.
 - Select a date to view daily sales, sold and leftover totals
 - Download all saved records as CSV from the browser
 - Edit food name, price and quantities with Save or Cancel
+- Download and restore JSON backups with validation
 
 ## How to Run
 Requires Python 3.

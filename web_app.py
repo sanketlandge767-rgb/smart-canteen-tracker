@@ -401,3 +401,133 @@ if records:
 
 else:
     st.info("Add records before exporting.")
+
+st.divider()
+st.subheader("💾 Data Backup")
+
+backup_data = json.dumps(
+    records,
+    indent=4,
+    ensure_ascii=False,
+    allow_nan=False
+).encode("utf-8")
+
+st.download_button(
+    label="Download JSON backup",
+    data=backup_data,
+    file_name=f"canteen-backup-{date.today().isoformat()}.json",
+    mime="application/json",
+    key="download_json_backup"
+)
+
+st.caption("Keep this backup to restore your records later.")
+
+st.subheader("Restore JSON Backup")
+
+uploaded_backup = st.file_uploader(
+    "Choose your canteen JSON backup",
+    type=["json"],
+    key="restore_backup_file"
+)
+
+if uploaded_backup is not None:
+    try:
+        backup_records = json.loads(
+            uploaded_backup.getvalue().decode("utf-8-sig")
+        )
+
+        if not isinstance(backup_records, list):
+            raise ValueError("Backup must contain a list of records.")
+
+        for record in backup_records:
+            if not isinstance(record, dict):
+                raise ValueError("Each record must be an object.")
+
+            if not isinstance(record.get("food"), str):
+                raise ValueError("Each record needs a food name.")
+
+            if not record["food"].strip():
+                raise ValueError("Food name cannot be empty.")
+
+            for field in ["sold", "leftover"]:
+                value = record.get(field)
+
+                if type(value) is not int or value < 0:
+                    raise ValueError(
+                        f"{field} must be a non-negative whole number."
+                    )
+
+            sales = record.get("sales")
+
+            if (
+                type(sales) not in (int, float)
+                or not 0 <= sales < float("inf")
+            ):
+                raise ValueError("Sales must be a valid non-negative number.")
+
+            if "prepared" in record:
+                if (
+                    type(record["prepared"]) is not int
+                    or record["prepared"]
+                    != record["sold"] + record["leftover"]
+                ):
+                    raise ValueError("Prepared quantity is inconsistent.")
+
+            if "price" in record:
+                price_value = record["price"]
+
+                if (
+                    type(price_value) not in (int, float)
+                    or not 0 <= price_value < float("inf")
+                ):
+                    raise ValueError("Price must be a valid number.")
+
+                if abs(
+                    price_value * record["sold"] - sales
+                ) > 0.01:
+                    raise ValueError("Price and sales do not match.")
+
+            if "date" in record:
+                record_date = record["date"]
+
+                if not isinstance(record_date, str):
+                    raise ValueError("Date must be text.")
+
+                if date.fromisoformat(record_date).isoformat() != record_date:
+                    raise ValueError("Date must use YYYY-MM-DD.")
+
+    except (ValueError, UnicodeError, OverflowError) as error:
+        st.error(f"Invalid backup: {error}")
+
+    else:
+        st.info(
+            f"Current records: {len(records)} | "
+            f"Backup records: {len(backup_records)}"
+        )
+
+        st.warning(
+            "Restore replaces all current records with this backup."
+        )
+
+        with st.form("restore_confirmation"):
+            confirmed = st.checkbox(
+                "I have downloaded my current backup "
+                "and want to replace the records."
+            )
+
+            restore_clicked = st.form_submit_button("Restore backup")
+
+        if restore_clicked:
+            if not confirmed:
+                st.warning("Tick the confirmation checkbox first.")
+            else:
+                try:
+                    save_records(backup_records)
+                except OSError as error:
+                    st.error(f"Could not restore backup: {error}")
+                else:
+                    reset_actions()
+                    st.session_state.message = (
+                        "Backup restored successfully!"
+                    )
+                    st.rerun()

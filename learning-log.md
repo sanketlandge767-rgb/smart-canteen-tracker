@@ -74,3 +74,8 @@
 - Added Save changes and Cancel options.
 - Recalculate sales and leftover after editing.
 - Preserve the original record date.
+
+## Session 14 — JSON Backup and Restore
+- Added JSON backup download.
+- Validated uploaded backup records.
+- Restored a backup successfully with confirmation.

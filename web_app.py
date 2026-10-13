@@ -33,14 +33,13 @@ def save_records(records):
 
 
 def create_csv(records):
-    csv_buffer = io.StringIO()
-
-    columns = [
+    buffer = io.StringIO()
+    fields = [
         "date", "food", "price", "prepared",
         "sold", "leftover", "sales"
     ]
 
-    writer = csv.DictWriter(csv_buffer, fieldnames=columns)
+    writer = csv.DictWriter(buffer, fieldnames=fields)
     writer.writeheader()
 
     for record in records:
@@ -49,15 +48,35 @@ def create_csv(records):
             "food": record["food"],
             "price": record.get("price", ""),
             "prepared": record.get(
-                "prepared",
-                record["sold"] + record["leftover"]
+                "prepared", record["sold"] + record["leftover"]
             ),
             "sold": record["sold"],
             "leftover": record["leftover"],
             "sales": f"{record['sales']:.2f}"
         })
 
-    return csv_buffer.getvalue().encode("utf-8-sig")
+    return buffer.getvalue().encode("utf-8-sig")
+
+
+def make_record(food, price, prepared, sold, record_date=None):
+    record = {
+        "food": food.strip(),
+        "price": price,
+        "prepared": prepared,
+        "sold": sold,
+        "leftover": prepared - sold,
+        "sales": price * sold
+    }
+
+    if record_date is not None:
+        record["date"] = record_date
+
+    return record
+
+
+def reset_actions():
+    st.session_state.pending_delete = None
+    st.session_state.edit_index = None
 
 
 st.title("🍽️ Smart Canteen Tracker")
@@ -68,8 +87,17 @@ records = load_records()
 if "pending_delete" not in st.session_state:
     st.session_state.pending_delete = None
 
-# Food entry form
-with st.form("food_entry", clear_on_submit=False):
+if "edit_index" not in st.session_state:
+    st.session_state.edit_index = None
+
+if "edit_version" not in st.session_state:
+    st.session_state.edit_version = 0
+
+if "message" in st.session_state:
+    st.success(st.session_state.pop("message"))
+
+# Add a record
+with st.form("food_entry"):
     food_name = st.text_input("Food name")
 
     price = st.number_input(
@@ -96,47 +124,37 @@ with st.form("food_entry", clear_on_submit=False):
     submitted = st.form_submit_button("Save record")
 
 if submitted:
-    st.session_state.pending_delete = None
-
     if not food_name.strip():
         st.error("Enter a food name.")
     elif sold > prepared:
         st.error("Sold quantity cannot exceed prepared quantity.")
     else:
-        record = {
-            "date": date.today().isoformat(),
-            "food": food_name.strip(),
-            "price": price,
-            "prepared": prepared,
-            "sold": sold,
-            "leftover": prepared - sold,
-            "sales": price * sold
-        }
-
-        updated_records = records + [record]
+        new_record = make_record(
+            food_name, price, prepared, sold,
+            date.today().isoformat()
+        )
 
         try:
-            save_records(updated_records)
+            save_records(records + [new_record])
         except OSError as error:
             st.error(f"Could not save record: {error}")
         else:
-            records = updated_records
-            st.success("Record saved successfully!")
+            reset_actions()
+            st.session_state.message = "Record saved successfully!"
+            st.rerun()
 
-# Saved records with Delete buttons
+# All records
 st.subheader("All saved records")
 
 if records:
-    widths = [2, 2, 1, 1, 1, 1, 1.5, 1.5]
+    widths = [2, 2, 1, 1, 1, 1, 1.5, 1, 1]
 
     headings = [
         "Date", "Food", "Price", "Prepared",
-        "Sold", "Leftover", "Sales", "Action"
+        "Sold", "Leftover", "Sales", "Edit", "Delete"
     ]
 
-    header_columns = st.columns(widths)
-
-    for column, heading in zip(header_columns, headings):
+    for column, heading in zip(st.columns(widths), headings):
         column.write(f"**{heading}**")
 
     st.divider()
@@ -148,16 +166,15 @@ if records:
         columns[1].write(record["food"])
 
         record_price = record.get("price")
+
         columns[2].write(
             f"{record_price:.2f}"
-            if record_price is not None
-            else "—"
+            if record_price is not None else "—"
         )
 
         columns[3].write(
             record.get(
-                "prepared",
-                record["sold"] + record["leftover"]
+                "prepared", record["sold"] + record["leftover"]
             )
         )
 
@@ -166,39 +183,143 @@ if records:
         columns[6].write(f"Rs. {record['sales']:.2f}")
 
         with columns[7]:
-            if st.button("🗑 Delete", key=f"delete_{index}"):
+            if st.button("Edit", key=f"edit_{index}"):
+                reset_actions()
+                st.session_state.edit_index = index
+                st.session_state.edit_version += 1
+                st.rerun()
+
+        with columns[8]:
+            if st.button("Delete", key=f"delete_{index}"):
+                reset_actions()
                 st.session_state.pending_delete = index
                 st.rerun()
 
+        # Edit form for the selected row
+        if st.session_state.edit_index == index:
+            old_prepared = record.get(
+                "prepared", record["sold"] + record["leftover"]
+            )
+
+            old_price = record.get("price")
+
+            if old_price is None:
+                old_price = (
+                    record["sales"] / record["sold"]
+                    if record["sold"] else 0.0
+                )
+
+            st.info(
+                "Edit this record. Its original date will stay the same."
+            )
+
+            form_key = (
+                f"edit_form_{index}_"
+                f"{st.session_state.edit_version}"
+            )
+
+            with st.form(form_key):
+                edited_food = st.text_input(
+                    "Food name",
+                    value=record["food"]
+                )
+
+                edited_price = st.number_input(
+                    "Price per item (Rs.)",
+                    min_value=0.0,
+                    value=float(old_price),
+                    step=1.0
+                )
+
+                edited_prepared = st.number_input(
+                    "Prepared quantity",
+                    min_value=0,
+                    value=int(old_prepared),
+                    step=1
+                )
+
+                edited_sold = st.number_input(
+                    "Sold quantity",
+                    min_value=0,
+                    value=int(record["sold"]),
+                    step=1
+                )
+
+                save_column, cancel_column = st.columns(2)
+
+                with save_column:
+                    save_edit = st.form_submit_button("Save changes")
+
+                with cancel_column:
+                    cancel_edit = st.form_submit_button("Cancel")
+
+            if cancel_edit:
+                reset_actions()
+                st.rerun()
+
+            if save_edit:
+                if not edited_food.strip():
+                    st.error("Enter a food name.")
+                elif edited_sold > edited_prepared:
+                    st.error(
+                        "Sold quantity cannot exceed prepared quantity."
+                    )
+                else:
+                    edited_record = make_record(
+                        edited_food,
+                        edited_price,
+                        edited_prepared,
+                        edited_sold,
+                        record.get("date")
+                    )
+
+                    updated_records = records.copy()
+                    updated_records[index] = edited_record
+
+                    try:
+                        save_records(updated_records)
+                    except OSError as error:
+                        st.error(f"Could not update record: {error}")
+                    else:
+                        reset_actions()
+                        st.session_state.message = "Record updated!"
+                        st.rerun()
+
+        # Delete confirmation
         if st.session_state.pending_delete == index:
             st.warning(
                 f"Delete {record['food']} | "
-                f"Sold: {record['sold']} | "
                 f"Sales: Rs. {record['sales']:.2f}?"
             )
 
             confirm_column, cancel_column = st.columns(2)
 
             with confirm_column:
-                if st.button(
-                    "Confirm delete",
-                    key=f"confirm_{index}"
-                ):
-                    remaining_records = (
-                        records[:index] + records[index + 1:]
-                    )
-
-                    try:
-                        save_records(remaining_records)
-                    except OSError as error:
-                        st.error(f"Could not delete record: {error}")
-                    else:
-                        st.session_state.pending_delete = None
-                        st.rerun()
+                confirm_delete = st.button(
+                    "Confirm delete", key=f"confirm_{index}"
+                )
 
             with cancel_column:
-                if st.button("Cancel", key=f"cancel_{index}"):
-                    st.session_state.pending_delete = None
+                cancel_delete = st.button(
+                    "Cancel", key=f"cancel_delete_{index}"
+                )
+
+            if cancel_delete:
+                reset_actions()
+                st.rerun()
+
+            if confirm_delete:
+                remaining_records = (
+                    records[:index] + records[index + 1:]
+                )
+
+                try:
+                    save_records(remaining_records)
+                except OSError as error:
+                    st.error(f"Could not delete record: {error}")
+                else:
+                    reset_actions()
+                    st.session_state.message = "Record deleted!"
                     st.rerun()
 
         st.divider()
@@ -220,51 +341,41 @@ selected_date = st.date_input(
     value=date.today()
 )
 
-selected_date_text = selected_date.isoformat()
-
 daily_records = [
-    record
-    for record in records
-    if record.get("date") == selected_date_text
+    record for record in records
+    if record.get("date") == selected_date.isoformat()
 ]
 
 if daily_records:
-    daily_sales = sum(
-        record["sales"] for record in daily_records
-    )
-
-    daily_sold = sum(
-        record["sold"] for record in daily_records
-    )
-
-    daily_leftover = sum(
-        record["leftover"] for record in daily_records
-    )
-
     sales_column, sold_column, leftover_column = st.columns(3)
 
     sales_column.metric(
         "Daily sales",
-        f"Rs. {daily_sales:.2f}"
+        f"Rs. {sum(r['sales'] for r in daily_records):.2f}"
     )
-    sold_column.metric("Items sold", daily_sold)
-    leftover_column.metric("Leftover quantity", daily_leftover)
 
-    daily_rows = []
+    sold_column.metric(
+        "Items sold",
+        sum(r["sold"] for r in daily_records)
+    )
 
-    for record in daily_records:
-        daily_rows.append({
+    leftover_column.metric(
+        "Leftover quantity",
+        sum(r["leftover"] for r in daily_records)
+    )
+
+    st.dataframe([
+        {
             "Food": record["food"],
             "Prepared": record.get(
-                "prepared",
-                record["sold"] + record["leftover"]
+                "prepared", record["sold"] + record["leftover"]
             ),
             "Sold": record["sold"],
             "Leftover": record["leftover"],
             "Sales": record["sales"]
-        })
-
-    st.dataframe(daily_rows)
+        }
+        for record in daily_records
+    ])
 
 else:
     st.info("No records found for the selected date.")
@@ -286,8 +397,7 @@ if records:
         key="download_all_records"
     )
 
-    st.caption(
-        "Downloads all saved records, regardless of the selected report date."
-    )
+    st.caption("Downloads all records, regardless of report date.")
+
 else:
     st.info("Add records before exporting.")

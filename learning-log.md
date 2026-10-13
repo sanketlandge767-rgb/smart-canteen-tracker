@@ -68,3 +68,9 @@
 - Added a Download CSV button to the browser app.
 - Exported all saved records.
 - Downloaded and checked the CSV file.
+
+## Session 13 — Edit Records
+- Added an Edit button beside each record.
+- Added Save changes and Cancel options.
+- Recalculate sales and leftover after editing.
+- Preserve the original record date.

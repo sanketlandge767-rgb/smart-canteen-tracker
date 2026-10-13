@@ -23,6 +23,56 @@ def load_records():
     return []
 
 
+def show_summary(records):
+    print("\n--- Final Canteen Summary ---")
+    grand_total = 0
+
+    for record in records:
+        record_date = record.get("date", "Old record")
+        prepared_quantity = record.get(
+            "prepared", record["sold"] + record["leftover"]
+        )
+
+        print(
+            f"{record_date} | "
+            f"{record['food']} | "
+            f"Prepared: {prepared_quantity} | "
+            f"Sold: {record['sold']} | "
+            f"Leftover: {record['leftover']} | "
+            f"Sales: Rs. {record['sales']:.2f}"
+        )
+
+        grand_total += record["sales"]
+
+    print(f"\nTotal sales: Rs. {grand_total:.2f}")
+
+
+def show_daily_report(records, report_date):
+    daily_sales = 0
+    daily_leftover = 0
+    matching_records = 0
+
+    print(f"\n--- Report for {report_date} ---")
+
+    for record in records:
+        if record.get("date") == report_date:
+            print(
+                f"{record['food']} | "
+                f"Sales: Rs. {record['sales']:.2f} | "
+                f"Leftover: {record['leftover']}"
+            )
+
+            daily_sales += record["sales"]
+            daily_leftover += record["leftover"]
+            matching_records += 1
+
+    if matching_records == 0:
+        print("No records found for this date.")
+    else:
+        print(f"Daily sales: Rs. {daily_sales:.2f}")
+        print("Total leftover quantity:", daily_leftover)
+
+
 print("Smart Canteen Tracker")
 print("Created by: Sanket")
 
@@ -73,28 +123,7 @@ while True:
             "and whole numbers for quantities."
         )
 
-print("\n--- Final Canteen Summary ---")
-
-grand_total = 0
-
-for record in records:
-    record_date = record.get("date", "Old record")
-    prepared_quantity = record.get(
-        "prepared", record["sold"] + record["leftover"]
-    )
-
-    print(
-        f"{record_date} | "
-        f"{record['food']} | "
-        f"Prepared: {prepared_quantity} | "
-        f"Sold: {record['sold']} | "
-        f"Leftover: {record['leftover']} | "
-        f"Sales: Rs. {record['sales']:.2f}"
-    )
-
-    grand_total += record["sales"]
-
-print(f"\nTotal sales: Rs. {grand_total:.2f}")
+show_summary(records)
 
 report_date = input(
     "\nEnter report date (YYYY-MM-DD), or Enter to skip: "
@@ -103,36 +132,13 @@ report_date = input(
 if report_date:
     try:
         date.fromisoformat(report_date)
-
-        daily_sales = 0
-        daily_leftover = 0
-        matching_records = 0
-
-        print(f"\n--- Report for {report_date} ---")
-
-        for record in records:
-            if record.get("date") == report_date:
-                print(
-                    f"{record['food']} | "
-                    f"Sales: Rs. {record['sales']:.2f} | "
-                    f"Leftover: {record['leftover']}"
-                )
-
-                daily_sales += record["sales"]
-                daily_leftover += record["leftover"]
-                matching_records += 1
-
-        if matching_records == 0:
-            print("No records found for this date.")
-        else:
-            print(f"Daily sales: Rs. {daily_sales:.2f}")
-            print("Total leftover quantity:", daily_leftover)
-
     except ValueError:
         print(
             "Invalid date. Use YYYY-MM-DD, "
             "for example 2026-10-13."
         )
+    else:
+        show_daily_report(records, report_date)
 
 export_choice = input(
     "\nExport all records to CSV? (y/n): "

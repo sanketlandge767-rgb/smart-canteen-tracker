@@ -87,3 +87,8 @@
 - Verified 10% buffer: Idli 6, Poha 9, Tea 4.
 - Verified 0% buffer: Idli 5, Poha 8, Tea 3.
 - Current estimates use only one recorded day.
+
+## Session 16 — Food Performance Chart
+- Added a food-wise Sold vs Leftover bar chart.
+- Combined records for each food across all saved dates.
+- Verified chart values against the summary table.

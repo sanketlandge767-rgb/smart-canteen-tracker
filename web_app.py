@@ -624,3 +624,40 @@ else:
     st.info(
         "No dated records from before today are available."
     )
+
+# Food-wise charts
+st.divider()
+st.subheader("📊 Food Performance")
+
+st.caption("Totals across all saved records.")
+
+food_totals = {}
+
+for record in records:
+    food_name = record["food"].strip()
+    food_key = food_name.casefold()
+
+    if food_key not in food_totals:
+        food_totals[food_key] = {
+            "Food": food_name,
+            "Sold": 0,
+            "Leftover": 0
+        }
+
+    food_totals[food_key]["Sold"] += record["sold"]
+    food_totals[food_key]["Leftover"] += record["leftover"]
+
+if food_totals:
+    chart_rows = list(food_totals.values())
+
+    st.bar_chart(
+        chart_rows,
+        x="Food",
+        y=["Sold", "Leftover"],
+        stack=False
+    )
+
+    st.dataframe(chart_rows)
+
+else:
+    st.info("Add records to see food performance.")

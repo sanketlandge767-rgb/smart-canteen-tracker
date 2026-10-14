@@ -79,3 +79,9 @@
 - Added JSON backup download.
 - Validated uploaded backup records.
 - Restored a backup successfully with confirmation.
+
+## Session 15 — Food Demand Estimation
+- Added estimates using up to 7 recent recorded days.
+- Combined same-day sales for each food.
+- Added an adjustable preparation buffer.
+- Checked the estimation table with a 20% buffer.

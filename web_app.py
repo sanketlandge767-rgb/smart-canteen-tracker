@@ -531,3 +531,92 @@ if uploaded_backup is not None:
                         "Backup restored successfully!"
                     )
                     st.rerun()
+
+# Food demand estimation
+import math
+
+st.divider()
+st.subheader("📊 Food Demand Estimation")
+
+st.caption(
+    "Uses up to 7 recent recorded days before today. "
+    "Today's records are excluded because sales may still be ongoing."
+)
+
+food_history = {}
+
+for record in records:
+    record_date = record.get("date")
+
+    if not record_date:
+        continue
+
+    try:
+        sales_date = date.fromisoformat(record_date)
+    except (TypeError, ValueError):
+        continue
+
+    if sales_date >= date.today():
+        continue
+
+    food_name = record["food"].strip()
+    food_key = food_name.casefold()
+
+    if food_key not in food_history:
+        food_history[food_key] = {
+            "name": food_name,
+            "daily_sales": {}
+        }
+
+    daily_sales = food_history[food_key]["daily_sales"]
+
+    daily_sales[sales_date] = (
+        daily_sales.get(sales_date, 0) + record["sold"]
+    )
+
+if food_history:
+    buffer_percent = st.slider(
+        "Extra preparation buffer (%)",
+        min_value=0,
+        max_value=30,
+        value=10,
+        step=5
+    )
+
+    estimates = []
+
+    for food_key in sorted(food_history):
+        history = food_history[food_key]
+        daily_sales = history["daily_sales"]
+
+        recent_dates = sorted(daily_sales, reverse=True)[:7]
+
+        average_sold = (
+            sum(daily_sales[day] for day in recent_dates)
+            / len(recent_dates)
+        )
+
+        suggested_quantity = math.ceil(
+            average_sold * (1 + buffer_percent / 100)
+        )
+
+        estimates.append({
+            "Food": history["name"],
+            "Recorded days used": len(recent_dates),
+            "Average daily sold": round(average_sold, 1),
+            "Suggested preparation": suggested_quantity
+        })
+
+    st.dataframe(estimates, hide_index=True)
+
+    st.info(
+        "This is a simple sales-based estimate. "
+        "Adjust it for holidays, events and expected attendance. "
+        "Missing dates are not counted as zero-sales days."
+    )
+
+else:
+    st.info(
+        "Demand estimates will appear when you have "
+        "dated sales records from before today."
+    )

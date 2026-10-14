@@ -1,6 +1,7 @@
 import json
 import csv
 import io
+import math
 from pathlib import Path
 from datetime import date
 
@@ -15,25 +16,86 @@ st.set_page_config(
 data_file = Path(__file__).parent / "records.json"
 
 
+def validate_records(items):
+    if not isinstance(items, list):
+        raise ValueError("Records must be a list.")
+
+    for record in items:
+        if not isinstance(record, dict):
+            raise ValueError("Each record must be an object.")
+
+        food = record.get("food")
+        if not isinstance(food, str) or not food.strip():
+            raise ValueError("Each record needs a food name.")
+
+        for field in ["sold", "leftover"]:
+            value = record.get(field)
+            if type(value) is not int or value < 0:
+                raise ValueError(
+                    f"{field} must be a non-negative whole number."
+                )
+
+        sales = record.get("sales")
+        if (
+            type(sales) not in (int, float)
+            or not 0 <= sales < float("inf")
+        ):
+            raise ValueError("Sales must be a valid non-negative number.")
+
+        if "prepared" in record:
+            if (
+                type(record["prepared"]) is not int
+                or record["prepared"]
+                != record["sold"] + record["leftover"]
+            ):
+                raise ValueError("Prepared quantity is inconsistent.")
+
+        if "price" in record:
+            price_value = record["price"]
+            if (
+                type(price_value) not in (int, float)
+                or not 0 <= price_value < float("inf")
+            ):
+                raise ValueError("Price must be a valid non-negative number.")
+
+            if abs(price_value * record["sold"] - sales) > 0.01:
+                raise ValueError("Price and sales do not match.")
+
+        if "date" in record:
+            record_date = record["date"]
+            if not isinstance(record_date, str):
+                raise ValueError("Date must be text.")
+
+            if date.fromisoformat(record_date).isoformat() != record_date:
+                raise ValueError("Date must use YYYY-MM-DD.")
+
+
 def load_records():
     if not data_file.exists():
         return []
 
     try:
         with data_file.open("r", encoding="utf-8") as file:
-            return json.load(file)
-    except (json.JSONDecodeError, OSError) as error:
+            items = json.load(file)
+
+        validate_records(items)
+        return items
+
+    except (ValueError, OSError, OverflowError) as error:
         st.error(f"Could not load records: {error}")
         st.stop()
 
 
-def save_records(records):
+def save_records(items):
+    validate_records(items)
+
     with data_file.open("w", encoding="utf-8") as file:
-        json.dump(records, file, indent=4)
+        json.dump(items, file, indent=4, allow_nan=False)
 
 
-def create_csv(records):
+def create_csv(items):
     buffer = io.StringIO()
+
     fields = [
         "date", "food", "price", "prepared",
         "sold", "leftover", "sales"
@@ -42,7 +104,7 @@ def create_csv(records):
     writer = csv.DictWriter(buffer, fieldnames=fields)
     writer.writeheader()
 
-    for record in records:
+    for record in items:
         writer.writerow({
             "date": record.get("date", ""),
             "food": record["food"],
@@ -84,14 +146,13 @@ st.caption("Created by Sanket")
 
 records = load_records()
 
-if "pending_delete" not in st.session_state:
-    st.session_state.pending_delete = None
-
-if "edit_index" not in st.session_state:
-    st.session_state.edit_index = None
-
-if "edit_version" not in st.session_state:
-    st.session_state.edit_version = 0
+for name, default in [
+    ("pending_delete", None),
+    ("edit_index", None),
+    ("edit_version", 0)
+]:
+    if name not in st.session_state:
+        st.session_state[name] = default
 
 if "message" in st.session_state:
     st.success(st.session_state.pop("message"))
@@ -136,19 +197,42 @@ if submitted:
 
         try:
             save_records(records + [new_record])
-        except OSError as error:
+        except (OSError, ValueError, OverflowError) as error:
             st.error(f"Could not save record: {error}")
         else:
             reset_actions()
             st.session_state.message = "Record saved successfully!"
             st.rerun()
 
-# All records
+# Search and display records
 st.subheader("All saved records")
 
-if records:
-    widths = [2, 2, 1, 1, 1, 1, 1.5, 1, 1]
+search_text = st.text_input(
+    "Search food name",
+    placeholder="Type Tea, Poha, Idli...",
+    key="food_search",
+    on_change=reset_actions
+).strip().casefold()
 
+# Keep the original index so Edit/Delete target the correct record.
+visible_records = [
+    (index, record)
+    for index, record in enumerate(records)
+    if search_text in record["food"].strip().casefold()
+]
+
+st.caption(
+    f"Showing {len(visible_records)} of {len(records)} records. "
+    "Search filters this list only."
+)
+
+if not records:
+    st.info("No records yet. Add your first food item.")
+elif not visible_records:
+    st.info("No matching food. Clear the search to see all records.")
+
+if visible_records:
+    widths = [2, 2, 1, 1, 1, 1, 1.5, 1, 1]
     headings = [
         "Date", "Food", "Price", "Prepared",
         "Sold", "Leftover", "Sales", "Edit", "Delete"
@@ -159,14 +243,13 @@ if records:
 
     st.divider()
 
-    for index, record in enumerate(records):
+    for index, record in visible_records:
         columns = st.columns(widths)
 
         columns[0].write(record.get("date", "Old record"))
         columns[1].write(record["food"])
 
         record_price = record.get("price")
-
         columns[2].write(
             f"{record_price:.2f}"
             if record_price is not None else "—"
@@ -177,7 +260,6 @@ if records:
                 "prepared", record["sold"] + record["leftover"]
             )
         )
-
         columns[4].write(record["sold"])
         columns[5].write(record["leftover"])
         columns[6].write(f"Rs. {record['sales']:.2f}")
@@ -195,14 +277,13 @@ if records:
                 st.session_state.pending_delete = index
                 st.rerun()
 
-        # Edit form for the selected row
+        # Edit selected record
         if st.session_state.edit_index == index:
             old_prepared = record.get(
                 "prepared", record["sold"] + record["leftover"]
             )
 
             old_price = record.get("price")
-
             if old_price is None:
                 old_price = (
                     record["sales"] / record["sold"]
@@ -210,7 +291,7 @@ if records:
                 )
 
             st.info(
-                "Edit this record. Its original date will stay the same."
+                "Edit this record. Its original date stays the same."
             )
 
             form_key = (
@@ -278,7 +359,7 @@ if records:
 
                     try:
                         save_records(updated_records)
-                    except OSError as error:
+                    except (OSError, ValueError, OverflowError) as error:
                         st.error(f"Could not update record: {error}")
                     else:
                         reset_actions()
@@ -289,6 +370,7 @@ if records:
         if st.session_state.pending_delete == index:
             st.warning(
                 f"Delete {record['food']} | "
+                f"Sold: {record['sold']} | "
                 f"Sales: Rs. {record['sales']:.2f}?"
             )
 
@@ -315,7 +397,7 @@ if records:
 
                 try:
                     save_records(remaining_records)
-                except OSError as error:
+                except (OSError, ValueError, OverflowError) as error:
                     st.error(f"Could not delete record: {error}")
                 else:
                     reset_actions()
@@ -324,12 +406,8 @@ if records:
 
         st.divider()
 
-    total_sales = sum(record["sales"] for record in records)
-    st.metric("Total saved sales", f"Rs. {total_sales:.2f}")
-
-else:
-    st.info("No records yet. Add your first food item.")
-
+total_sales = sum(record["sales"] for record in records)
+st.metric("Total saved sales — all records", f"Rs. {total_sales:.2f}")
 st.caption("Records are saved locally on this laptop.")
 
 # Daily report
@@ -353,12 +431,10 @@ if daily_records:
         "Daily sales",
         f"Rs. {sum(r['sales'] for r in daily_records):.2f}"
     )
-
     sold_column.metric(
         "Items sold",
         sum(r["sold"] for r in daily_records)
     )
-
     leftover_column.metric(
         "Leftover quantity",
         sum(r["leftover"] for r in daily_records)
@@ -376,7 +452,6 @@ if daily_records:
         }
         for record in daily_records
     ])
-
 else:
     st.info("No records found for the selected date.")
 
@@ -396,12 +471,11 @@ if records:
         mime="text/csv",
         key="download_all_records"
     )
-
-    st.caption("Downloads all records, regardless of report date.")
-
+    st.caption("Downloads all records, regardless of search or report date.")
 else:
     st.info("Add records before exporting.")
 
+# JSON backup
 st.divider()
 st.subheader("💾 Data Backup")
 
@@ -422,6 +496,7 @@ st.download_button(
 
 st.caption("Keep this backup to restore your records later.")
 
+# Restore backup
 st.subheader("Restore JSON Backup")
 
 uploaded_backup = st.file_uploader(
@@ -435,66 +510,7 @@ if uploaded_backup is not None:
         backup_records = json.loads(
             uploaded_backup.getvalue().decode("utf-8-sig")
         )
-
-        if not isinstance(backup_records, list):
-            raise ValueError("Backup must contain a list of records.")
-
-        for record in backup_records:
-            if not isinstance(record, dict):
-                raise ValueError("Each record must be an object.")
-
-            if not isinstance(record.get("food"), str):
-                raise ValueError("Each record needs a food name.")
-
-            if not record["food"].strip():
-                raise ValueError("Food name cannot be empty.")
-
-            for field in ["sold", "leftover"]:
-                value = record.get(field)
-
-                if type(value) is not int or value < 0:
-                    raise ValueError(
-                        f"{field} must be a non-negative whole number."
-                    )
-
-            sales = record.get("sales")
-
-            if (
-                type(sales) not in (int, float)
-                or not 0 <= sales < float("inf")
-            ):
-                raise ValueError("Sales must be a valid non-negative number.")
-
-            if "prepared" in record:
-                if (
-                    type(record["prepared"]) is not int
-                    or record["prepared"]
-                    != record["sold"] + record["leftover"]
-                ):
-                    raise ValueError("Prepared quantity is inconsistent.")
-
-            if "price" in record:
-                price_value = record["price"]
-
-                if (
-                    type(price_value) not in (int, float)
-                    or not 0 <= price_value < float("inf")
-                ):
-                    raise ValueError("Price must be a valid number.")
-
-                if abs(
-                    price_value * record["sold"] - sales
-                ) > 0.01:
-                    raise ValueError("Price and sales do not match.")
-
-            if "date" in record:
-                record_date = record["date"]
-
-                if not isinstance(record_date, str):
-                    raise ValueError("Date must be text.")
-
-                if date.fromisoformat(record_date).isoformat() != record_date:
-                    raise ValueError("Date must use YYYY-MM-DD.")
+        validate_records(backup_records)
 
     except (ValueError, UnicodeError, OverflowError) as error:
         st.error(f"Invalid backup: {error}")
@@ -504,7 +520,6 @@ if uploaded_backup is not None:
             f"Current records: {len(records)} | "
             f"Backup records: {len(backup_records)}"
         )
-
         st.warning(
             "Restore replaces all current records with this backup."
         )
@@ -514,7 +529,6 @@ if uploaded_backup is not None:
                 "I have downloaded my current backup "
                 "and want to replace the records."
             )
-
             restore_clicked = st.form_submit_button("Restore backup")
 
         if restore_clicked:
@@ -523,31 +537,26 @@ if uploaded_backup is not None:
             else:
                 try:
                     save_records(backup_records)
-                except OSError as error:
+                except (OSError, ValueError, OverflowError) as error:
                     st.error(f"Could not restore backup: {error}")
                 else:
                     reset_actions()
-                    st.session_state.message = (
-                        "Backup restored successfully!"
-                    )
+                    st.session_state.message = "Backup restored successfully!"
                     st.rerun()
 
 # Food demand estimation
-import math
-
 st.divider()
 st.subheader("📊 Food Demand Estimation")
 
 st.caption(
-    "Estimates preparation using up to 7 recent recorded days "
-    "before today. Today's sales are excluded."
+    "Uses up to 7 recent recorded days before today. "
+    "Today's sales are excluded."
 )
 
 food_history = {}
 
 for record in records:
     record_date = record.get("date")
-
     if not record_date:
         continue
 
@@ -569,7 +578,6 @@ for record in records:
         }
 
     daily_sales = food_history[food_key]["daily_sales"]
-
     daily_sales[sales_date] = (
         daily_sales.get(sales_date, 0) + record["sold"]
     )
@@ -588,7 +596,6 @@ if food_history:
     for food_key in sorted(food_history):
         history = food_history[food_key]
         daily_sales = history["daily_sales"]
-
         recent_dates = sorted(daily_sales, reverse=True)[:7]
 
         average_sold = (
@@ -614,21 +621,16 @@ if food_history:
         "Missing dates are not counted as zero-sales days. "
         "Sales may underestimate demand when food sells out."
     )
-
     st.caption(
         "One recorded day gives a weak estimate. "
         "Collect more daily records before relying on suggestions."
     )
-
 else:
-    st.info(
-        "No dated records from before today are available."
-    )
+    st.info("No dated records from before today are available.")
 
-# Food-wise charts
+# Food performance
 st.divider()
 st.subheader("📊 Food Performance")
-
 st.caption("Totals across all saved records.")
 
 food_totals = {}
@@ -656,8 +658,6 @@ if food_totals:
         y=["Sold", "Leftover"],
         stack=False
     )
-
     st.dataframe(chart_rows)
-
 else:
     st.info("Add records to see food performance.")

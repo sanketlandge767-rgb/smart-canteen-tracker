@@ -92,3 +92,9 @@
 - Added a food-wise Sold vs Leftover bar chart.
 - Combined records for each food across all saved dates.
 - Verified chart values against the summary table.
+
+## Session 17 — Food Search
+- Added case-insensitive food-name search.
+- Displayed matching and total record counts.
+- Verified Tea search.
+- Kept overall totals independent of search.

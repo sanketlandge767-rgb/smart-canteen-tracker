@@ -84,4 +84,6 @@
 - Added estimates using up to 7 recent recorded days.
 - Combined same-day sales for each food.
 - Added an adjustable preparation buffer.
-- Checked the estimation table with a 20% buffer.
+- Verified 10% buffer: Idli 6, Poha 9, Tea 4.
+- Verified 0% buffer: Idli 5, Poha 8, Tea 3.
+- Current estimates use only one recorded day.

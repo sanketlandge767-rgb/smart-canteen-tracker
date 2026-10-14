@@ -539,8 +539,8 @@ st.divider()
 st.subheader("📊 Food Demand Estimation")
 
 st.caption(
-    "Uses up to 7 recent recorded days before today. "
-    "Today's records are excluded because sales may still be ongoing."
+    "Estimates preparation using up to 7 recent recorded days "
+    "before today. Today's sales are excluded."
 )
 
 food_history = {}
@@ -603,20 +603,24 @@ if food_history:
         estimates.append({
             "Food": history["name"],
             "Recorded days used": len(recent_dates),
-            "Average daily sold": round(average_sold, 1),
+            "Average sold per recorded day": round(average_sold, 2),
             "Suggested preparation": suggested_quantity
         })
 
-    st.dataframe(estimates, hide_index=True)
+    st.dataframe(estimates)
 
     st.info(
-        "This is a simple sales-based estimate. "
-        "Adjust it for holidays, events and expected attendance. "
-        "Missing dates are not counted as zero-sales days."
+        "This is an average-based estimate, not AI prediction. "
+        "Missing dates are not counted as zero-sales days. "
+        "Sales may underestimate demand when food sells out."
+    )
+
+    st.caption(
+        "One recorded day gives a weak estimate. "
+        "Collect more daily records before relying on suggestions."
     )
 
 else:
     st.info(
-        "Demand estimates will appear when you have "
-        "dated sales records from before today."
+        "No dated records from before today are available."
     )

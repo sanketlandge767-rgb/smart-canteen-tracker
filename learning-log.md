@@ -103,3 +103,8 @@
 - Added a date-wise sales line chart and table.
 - Excluded undated records.
 - Displayed Rs. 380 for October 13 and Rs. 50 for October 14.
+
+## Session 19 — Leftover Analysis
+- Calculated food-wise leftover percentages.
+- Verified Idli: 50%.
+- Verified overall: 21 leftover out of 63 prepared, or 33.3%.

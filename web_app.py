@@ -706,3 +706,76 @@ st.caption(
     "Includes all dated records. Undated records are excluded. "
     "Missing dates are not treated as zero-sales days."
 )
+# Leftover percentage
+st.divider()
+st.subheader("🍽️ Leftover Analysis")
+st.caption("Totals across all saved records.")
+
+leftover_totals = {}
+
+for record in records:
+    food_name = record["food"].strip()
+    food_key = food_name.casefold()
+
+    if food_key not in leftover_totals:
+        leftover_totals[food_key] = {
+            "Food": food_name,
+            "Prepared": 0,
+            "Leftover": 0
+        }
+
+    leftover_totals[food_key]["Prepared"] += record.get(
+        "prepared", record["sold"] + record["leftover"]
+    )
+
+    leftover_totals[food_key]["Leftover"] += record["leftover"]
+
+if leftover_totals:
+    leftover_rows = []
+
+    for totals in leftover_totals.values():
+        prepared_total = totals["Prepared"]
+        leftover_total = totals["Leftover"]
+
+        percentage = (
+            leftover_total / prepared_total * 100
+            if prepared_total > 0
+            else None
+        )
+
+        leftover_rows.append({
+            "Food": totals["Food"],
+            "Prepared": prepared_total,
+            "Leftover": leftover_total,
+            "Leftover (%)": (
+                round(percentage, 2)
+                if percentage is not None
+                else None
+            )
+        })
+
+    st.dataframe(leftover_rows)
+
+    total_prepared = sum(
+        item["Prepared"] for item in leftover_totals.values()
+    )
+    total_leftover = sum(
+        item["Leftover"] for item in leftover_totals.values()
+    )
+
+    if total_prepared > 0:
+        overall_percentage = total_leftover / total_prepared * 100
+
+        st.metric(
+            "Overall leftover percentage",
+            f"{overall_percentage:.1f}%"
+        )
+    else:
+        st.info("Percentage needs a prepared quantity greater than zero.")
+
+else:
+    st.info("Add records to see leftover analysis.")
+
+st.caption(
+    "Leftover means unsold food, not necessarily discarded food."
+)

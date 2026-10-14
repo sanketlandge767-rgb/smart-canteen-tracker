@@ -661,3 +661,48 @@ if food_totals:
     st.dataframe(chart_rows)
 else:
     st.info("Add records to see food performance.")
+# Daily sales trend
+st.divider()
+st.subheader("📈 Daily Sales Trend")
+
+sales_by_date = {}
+
+for record in records:
+    record_date = record.get("date")
+
+    if not record_date:
+        continue
+
+    sales_by_date[record_date] = (
+        sales_by_date.get(record_date, 0) + record["sales"]
+    )
+
+if sales_by_date:
+    trend_rows = [
+        {
+            "Date": date.fromisoformat(record_date),
+            "Sales": total
+        }
+        for record_date, total in sorted(sales_by_date.items())
+    ]
+
+    st.line_chart(
+        trend_rows,
+        x="Date",
+        y="Sales"
+    )
+
+    st.dataframe(trend_rows)
+
+    if len(trend_rows) == 1:
+        st.info(
+            "Only one dated day is available. "
+            "Add records on more days to see a trend."
+        )
+else:
+    st.info("No dated records available.")
+
+st.caption(
+    "Includes all dated records. Undated records are excluded. "
+    "Missing dates are not treated as zero-sales days."
+)

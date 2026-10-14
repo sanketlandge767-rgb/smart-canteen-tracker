@@ -26,6 +26,7 @@ A beginner Python project to calculate canteen sales and leftover food.
 - Estimate food preparation using recent sales and an adjustable buffer
 - Compare food-wise sold and leftover totals using a bar chart
 - Search saved records by food name
+- View daily sales trends using a line chart
 
 ## How to Run
 Requires Python 3.

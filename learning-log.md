@@ -98,3 +98,8 @@
 - Displayed matching and total record counts.
 - Verified Tea search.
 - Kept overall totals independent of search.
+
+## Session 18 — Daily Sales Trend
+- Added a date-wise sales line chart and table.
+- Excluded undated records.
+- Displayed Rs. 380 for October 13 and Rs. 50 for October 14.

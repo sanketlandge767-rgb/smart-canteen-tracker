@@ -159,6 +159,13 @@ if "message" in st.session_state:
 
 # Add a record
 with st.form("food_entry"):
+    entry_date = st.date_input(
+        "Record date",
+        value=date.today(),
+        max_value=date.today(),
+        key="entry_date"
+    )
+
     food_name = st.text_input("Food name")
 
     price = st.number_input(
@@ -187,12 +194,14 @@ with st.form("food_entry"):
 if submitted:
     if not food_name.strip():
         st.error("Enter a food name.")
+    elif entry_date > date.today():
+        st.error("Record date cannot be in the future.")
     elif sold > prepared:
         st.error("Sold quantity cannot exceed prepared quantity.")
     else:
         new_record = make_record(
             food_name, price, prepared, sold,
-            date.today().isoformat()
+            entry_date.isoformat()
         )
 
         try:
@@ -201,7 +210,9 @@ if submitted:
             st.error(f"Could not save record: {error}")
         else:
             reset_actions()
-            st.session_state.message = "Record saved successfully!"
+            st.session_state.message = (
+                f"Record saved for {entry_date.isoformat()}!"
+            )
             st.rerun()
 
 # Search and display records
@@ -214,7 +225,6 @@ search_text = st.text_input(
     on_change=reset_actions
 ).strip().casefold()
 
-# Keep the original index so Edit/Delete target the correct record.
 visible_records = [
     (index, record)
     for index, record in enumerate(records)
@@ -661,6 +671,7 @@ if food_totals:
     st.dataframe(chart_rows)
 else:
     st.info("Add records to see food performance.")
+
 # Daily sales trend
 st.divider()
 st.subheader("📈 Daily Sales Trend")
@@ -706,7 +717,8 @@ st.caption(
     "Includes all dated records. Undated records are excluded. "
     "Missing dates are not treated as zero-sales days."
 )
-# Leftover percentage
+
+# Leftover analysis
 st.divider()
 st.subheader("🍽️ Leftover Analysis")
 st.caption("Totals across all saved records.")
@@ -765,14 +777,12 @@ if leftover_totals:
 
     if total_prepared > 0:
         overall_percentage = total_leftover / total_prepared * 100
-
         st.metric(
             "Overall leftover percentage",
             f"{overall_percentage:.1f}%"
         )
     else:
         st.info("Percentage needs a prepared quantity greater than zero.")
-
 else:
     st.info("Add records to see leftover analysis.")
 

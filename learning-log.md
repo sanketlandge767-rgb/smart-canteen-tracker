@@ -108,3 +108,9 @@
 - Calculated food-wise leftover percentages.
 - Verified Idli: 50%.
 - Verified overall: 21 leftover out of 63 prepared, or 33.3%.
+
+## Session 20 — Record Date Selection
+- Added a date selector to the food-entry form.
+- Allowed past dates and blocked future dates.
+- New records use the selected date.
+- Existing record dates remain unchanged.

@@ -148,3 +148,10 @@
 ## Sessions 28–29 — Documentation
 - Added the LinkedIn demo link to the README.
 - Updated future improvements to reflect the current version.
+
+## Session 30 — Basic Version Checkpoint
+- Completed the local Smart Canteen Tracker prototype.
+- Passed the listed manual checks and fresh setup test.
+- Added screenshots and a demo link to the README.
+- Downloaded a separate JSON data backup.
+- Documented limitations and future improvements.

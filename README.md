@@ -85,4 +85,14 @@ Start the app:
 ```powershell
 .\.venv\Scripts\python.exe -m streamlit run web_app.py
 ```
+## Screenshots
+
+### Dashboard
+![Dashboard](screenshots/dashboard.png)
+
+### Reports
+![Reports](screenshots/reports.png)
+
+### Demand Estimation
+![Demand Estimation](screenshots/demand.png)
 

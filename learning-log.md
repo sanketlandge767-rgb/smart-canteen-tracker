@@ -122,3 +122,7 @@
 ## Session 22 — Tab Navigation
 - Organised the app into Records, Reports, Demand and Backup tabs.
 - Kept existing features within their relevant tabs.
+
+## Session 23 — Summary Dashboard
+- Added four summary cards above the tabs.
+- Verified Rs. 700 sales, 42 sold, 21 leftover and 6 records.

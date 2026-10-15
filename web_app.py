@@ -158,6 +158,23 @@ for name, default in [
 if "message" in st.session_state:
     st.success(st.session_state.pop("message"))
 
+# Overall dashboard
+total_revenue = sum(record["sales"] for record in records)
+total_sold = sum(record["sold"] for record in records)
+total_leftover = sum(record["leftover"] for record in records)
+
+sales_card, sold_card, leftover_card, records_card = st.columns(4)
+
+sales_card.metric("Total sales", f"Rs. {total_revenue:.2f}")
+sold_card.metric("Quantity sold", total_sold)
+leftover_card.metric("Leftover quantity", total_leftover)
+records_card.metric("Saved records", len(records))
+
+st.caption(
+    "Totals across all saved records, including undated records."
+)
+st.divider()
+
 records_tab, reports_tab, demand_tab, backup_tab = st.tabs(
     ["Records", "Reports", "Demand", "Backup"]
 )

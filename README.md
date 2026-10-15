@@ -62,11 +62,11 @@ Total sales: Rs. 30.00
 - Records are stored locally; no automatic cloud backup
 - Total sales includes all saved records
 
-## Planned Features
-- Streamlit interface
-- SQLite data storage
-- Dashboard and CSV export
-- Basic demand estimate using average sales
+## Future Improvements
+- Move local JSON storage to SQLite.
+- Add ingredient costs and profit calculations.
+- Test demand estimates using more daily sales data.
+- Add authentication and persistent storage before online deployment.
 
 ## Author
 Sanket

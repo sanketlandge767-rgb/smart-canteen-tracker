@@ -144,3 +144,7 @@
 - Created a new virtual environment.
 - Installed packages from requirements.txt.
 - Successfully launched the app from the downloaded copy.
+
+## Sessions 28–29 — Documentation
+- Added the LinkedIn demo link to the README.
+- Updated future improvements to reflect the current version.

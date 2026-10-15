@@ -85,6 +85,10 @@ Start the app:
 ```powershell
 .\.venv\Scripts\python.exe -m streamlit run web_app.py
 ```
+## Video Demo
+
+[Watch the Smart Canteen Tracker demo on LinkedIn](https://lnkd.in/p/dPfGqaBF)
+
 ## Screenshots
 
 ### Dashboard

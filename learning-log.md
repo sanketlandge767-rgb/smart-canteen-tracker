@@ -134,3 +134,7 @@
 - Checked the selected-date sales report.
 - Checked daily CSV and JSON backup downloads.
 - All listed manual checks passed.
+
+## Session 26 — Project Screenshots
+- Added dashboard, reports and demand screenshots.
+- Embedded screenshots in the GitHub README.

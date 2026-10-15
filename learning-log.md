@@ -126,3 +126,11 @@
 ## Session 23 — Summary Dashboard
 - Added four summary cards above the tabs.
 - Verified Rs. 700 sales, 42 sold, 21 leftover and 6 records.
+
+## Session 24 — Manual Testing
+- Confirmed records remain after browser refresh.
+- Tested food search and no-match results.
+- Tested Edit Cancel and Delete Cancel.
+- Checked the selected-date sales report.
+- Checked daily CSV and JSON backup downloads.
+- All listed manual checks passed.

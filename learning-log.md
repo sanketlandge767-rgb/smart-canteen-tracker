@@ -138,3 +138,9 @@
 ## Session 26 — Project Screenshots
 - Added dashboard, reports and demand screenshots.
 - Embedded screenshots in the GitHub README.
+
+## Session 27 — Fresh Setup Test
+- Downloaded the project ZIP from GitHub.
+- Created a new virtual environment.
+- Installed packages from requirements.txt.
+- Successfully launched the app from the downloaded copy.

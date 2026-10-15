@@ -118,3 +118,7 @@
 ## Session 21 — Daily CSV Download
 - Added CSV download for the selected report date.
 - Checked that the export contains only that day's records.
+
+## Session 22 — Tab Navigation
+- Organised the app into Records, Reports, Demand and Backup tabs.
+- Kept existing features within their relevant tabs.

@@ -789,3 +789,24 @@ else:
 st.caption(
     "Leftover means unsold food, not necessarily discarded food."
 )
+# Download selected date's report
+st.divider()
+st.subheader("📥 Download Daily Report")
+
+st.caption(
+    f"Selected report date: {selected_date.isoformat()}"
+)
+
+if daily_records:
+    st.download_button(
+        label="Download selected day's CSV",
+        data=create_csv(daily_records),
+        file_name=f"canteen-daily-{selected_date.isoformat()}.csv",
+        mime="text/csv",
+        key="download_daily_report"
+    )
+else:
+    st.info(
+        "No records for this date. "
+        "Choose another date in Daily Sales Report."
+    )

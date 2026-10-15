@@ -114,3 +114,7 @@
 - Allowed past dates and blocked future dates.
 - New records use the selected date.
 - Existing record dates remain unchanged.
+
+## Session 21 — Daily CSV Download
+- Added CSV download for the selected report date.
+- Checked that the export contains only that day's records.
